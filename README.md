@@ -83,7 +83,7 @@ It's pretty basic right now, but it's designed with a easily extensible core aro
 # Getting Started
 
 There are 2 flavors of Fasten:
-- `ghcr.io/fastenhealth/fasten-onprem:sandbox` - This version only allows you to connect to a handful of Healthcare providers, using Sandbox accounts that are meant for testing, and contain synthetic(fake) data to give you an idea what Fasten will look like, without requiring personal medical information.
+- `ghcr.io/fastenhealth/fasten-onprem:sandbox` - This version only allows you to connect to a handful of Healthcare providers, using Sandbox accounts that are meant for testing, and contain synthetic (fake) data to give you an idea what Fasten will look like, without requiring personal medical information.
 - `ghcr.io/fastenhealth/fasten-onprem:main` - This version allows you to connect to 25,000+ different Healthcare providers, using your existing accounts. It will allow you to connect and retrieve your personal electronic medical record and store it within Fasten. **Be careful, this is YOUR health data**
 
 ## Instructions
@@ -145,6 +145,8 @@ Work your magic and then submit a pull request. We love pull requests!
 
 If you find the documentation lacking, help us out and update this README.md. If you don't have the time to work on Fasten, but found something we should know about, please submit an issue.
 
+This project is tested with BrowserStack.
+
 # Versioning
 
 We use SemVer for versioning. For the versions available, see the tags on this repository.
@@ -169,4 +171,4 @@ I'd also like to thank the following Corporate Sponsors:
 
 <a href="https://depot.dev/"><img src="https://raw.githubusercontent.com/fastenhealth/docs/main/img/sponsors/depot.png" height="100px" /></a>
 <a style="padding-left:5px" href="https://www.macminivault.com/"><img src="https://raw.githubusercontent.com/fastenhealth/docs/main/img/sponsors/macminivault.png" height="100px" /></a>
-<a style="padding-left:5px" href="https://www.health-samurai.io/"><img src="https://raw.githubusercontent.com/fastenhealth/docs/main/img/sponsors/health-samurai-logo.png" height="100px" /></a>
+<a style="padding-left:5px" href="https://www.browserstack.com/"><img src="https://raw.githubusercontent.com/fastenhealth/docs/main/img/sponsors/browserstack.png" height="100px" /></a>

@@ -27,6 +27,7 @@ import {SupportRequest} from '../models/fasten/support-request';
 import {
   List
 } from 'fhir/r4';
+import {FormRequestHealthSystem} from '../models/fasten/form-request-health-system';
 @Injectable({
   providedIn: 'root'
 })
@@ -50,7 +51,6 @@ export class FastenApiService {
     return this._httpClient.get<any>(endpointUrl.toString())
       .pipe(
         map((response: ValueSet) => {
-          console.log("Glossary RESPONSE", response)
           return response
         })
       );
@@ -60,7 +60,6 @@ export class FastenApiService {
     return this._httpClient.get<any>(`${GetEndpointAbsolutePath(globalThis.location, environment.fasten_api_endpoint_base)}/health`)
       .pipe(
         map((response: ResponseWrapper) => {
-          console.log("Health RESPONSE", response)
           return response.data
         })
       );
@@ -75,7 +74,6 @@ export class FastenApiService {
     return this._httpClient.delete<any>(`${GetEndpointAbsolutePath(globalThis.location, environment.fasten_api_endpoint_base)}/secure/account/me`)
       .pipe(
         map((response: ResponseWrapper) => {
-          console.log("DELETE ACCOUNT RESPONSE", response)
           if(response.success) {
             this.authService.Logout().then(() => {
               this.router.navigateByUrl('/auth/signup')
@@ -101,7 +99,6 @@ export class FastenApiService {
     return this._httpClient.get<any>(`${GetEndpointAbsolutePath(globalThis.location, environment.fasten_api_endpoint_base)}/secure/summary`, )
       .pipe(
         map((response: ResponseWrapper) => {
-          console.log("Summary RESPONSE", response)
           return response.data as Summary
         })
       );
@@ -111,7 +108,6 @@ export class FastenApiService {
     return this._httpClient.post<any>(`${GetEndpointAbsolutePath(globalThis.location, environment.fasten_api_endpoint_base)}/secure/source`, source)
       .pipe(
         map((response: ResponseWrapper) => {
-          console.log("SOURCE RESPONSE", response)
           // @ts-ignore
           return {summary: response.data, source: response.source}
         })
@@ -126,7 +122,6 @@ export class FastenApiService {
     return this._httpClient.post<any>(`${GetEndpointAbsolutePath(globalThis.location, environment.fasten_api_endpoint_base)}/secure/source/manual`, formData)
       .pipe(
         map((response: ResponseWrapper) => {
-          console.log("MANUAL SOURCE RESPONSE", response)
           return response.data as Source
         })
       );
@@ -134,7 +129,6 @@ export class FastenApiService {
 
   createRelatedResourcesFastenSource(resourceList: List): Observable<Source> {
 
-    console.log(resourceList)
     let bundleBlob = new Blob([JSON.stringify(resourceList)], { type: 'application/json' });
     let bundleFile = new File([ bundleBlob ], 'related.json', { type: 'application/json' });
 
@@ -144,7 +138,6 @@ export class FastenApiService {
     return this._httpClient.post<any>(`${GetEndpointAbsolutePath(globalThis.location, environment.fasten_api_endpoint_base)}/secure/resource/related`, formData)
       .pipe(
         map((response: ResponseWrapper) => {
-          console.log("RELATED RESOURCES RESPONSE", response)
           return response.data as Source
         })
       );
@@ -155,7 +148,6 @@ export class FastenApiService {
     return this._httpClient.get<any>(`${GetEndpointAbsolutePath(globalThis.location, environment.fasten_api_endpoint_base)}/secure/source`)
       .pipe(
         map((response: ResponseWrapper) => {
-          console.log("SOURCE RESPONSE", response)
           return response.data as Source[]
         })
       );
@@ -165,7 +157,6 @@ export class FastenApiService {
     return this._httpClient.get<any>(`${GetEndpointAbsolutePath(globalThis.location, environment.fasten_api_endpoint_base)}/secure/source/${sourceId}`)
       .pipe(
         map((response: ResponseWrapper) => {
-          console.log("SOURCE RESPONSE", response)
           return response.data as Source
         })
       );
@@ -175,7 +166,6 @@ export class FastenApiService {
     return this._httpClient.get<any>(`${GetEndpointAbsolutePath(globalThis.location, environment.fasten_api_endpoint_base)}/secure/source/${sourceId}/summary`)
       .pipe(
         map((response: ResponseWrapper) => {
-          console.log("SOURCE RESPONSE", response)
           return response.data as SourceSummary
         })
       );
@@ -194,7 +184,6 @@ export class FastenApiService {
     return this._httpClient.post<any>(`${GetEndpointAbsolutePath(globalThis.location, environment.fasten_api_endpoint_base)}/secure/source/${sourceId}/sync`, {})
       .pipe(
         map((response: ResponseWrapper) => {
-          console.log("SOURCE RESPONSE", response)
           return response.data
         })
       );
@@ -219,7 +208,6 @@ export class FastenApiService {
     return this._httpClient.get<any>(`${GetEndpointAbsolutePath(globalThis.location, environment.fasten_api_endpoint_base)}/secure/resource/fhir`, {params: queryParams})
       .pipe(
         map((response: ResponseWrapper) => {
-          console.log("RESPONSE", response)
           return response.data as ResourceFhir[]
         })
       );
@@ -246,7 +234,6 @@ export class FastenApiService {
     return this._httpClient.post<any>(`${GetEndpointAbsolutePath(globalThis.location, environment.fasten_api_endpoint_base)}/secure/resource/graph/${graphType}`, {resource_ids: selectedResourceIds})
       .pipe(
         map((response: ResponseWrapper) => {
-          console.log("RESPONSE", response)
           return response.data as ResourceGraphResponse
         })
       );
@@ -257,7 +244,6 @@ export class FastenApiService {
     return this._httpClient.get<any>(`${GetEndpointAbsolutePath(globalThis.location, environment.fasten_api_endpoint_base)}/secure/resource/fhir/${sourceId}/${resourceId}`)
       .pipe(
         map((response: ResponseWrapper) => {
-          console.log("RESPONSE", response)
           return response.data as ResourceFhir
         })
       );
@@ -269,7 +255,6 @@ export class FastenApiService {
     })
       .pipe(
         map((response: ResponseWrapper) => {
-          console.log("RESPONSE", response)
           return response
         })
       );
@@ -284,7 +269,6 @@ export class FastenApiService {
     })
       .pipe(
         map((response: ResponseWrapper) => {
-          console.log("RESPONSE", response)
           return response.data
         })
       );
@@ -339,7 +323,6 @@ export class FastenApiService {
     return this._httpClient.get<any>(`${GetEndpointAbsolutePath(globalThis.location, environment.fasten_api_endpoint_base)}/secure/jobs`, {params: queryParams})
       .pipe(
         map((response: ResponseWrapper) => {
-          console.log("RESPONSE", response)
           return response.data as BackgroundJob[]
         })
       );
@@ -350,7 +333,6 @@ export class FastenApiService {
     return this._httpClient.post<any>(`${GetEndpointAbsolutePath(globalThis.location, environment.fasten_api_endpoint_base)}/secure/jobs/error`, errorData)
       .pipe(
         map((response: ResponseWrapper) => {
-          console.log("RESPONSE", response)
           return response.data
         })
       );
@@ -361,7 +343,16 @@ export class FastenApiService {
     return this._httpClient.post<any>(`${GetEndpointAbsolutePath(globalThis.location, environment.fasten_api_endpoint_base)}/support/request`, request)
       .pipe(
         map((response: ResponseWrapper) => {
-          console.log("Support request response", response)
+          // @ts-ignore
+          return {}
+        })
+      );
+  }
+
+  requestHealthSystem(requestHealth: FormRequestHealthSystem): Observable<any> {
+    return this._httpClient.post<any>(`${GetEndpointAbsolutePath(globalThis.location, environment.fasten_api_endpoint_base)}/support/healthsystem`, requestHealth)
+      .pipe(
+        map((response: ResponseWrapper) => {
           // @ts-ignore
           return {}
         })

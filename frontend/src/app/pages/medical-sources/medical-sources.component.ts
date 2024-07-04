@@ -18,6 +18,8 @@ import {FormControl, FormGroup} from '@angular/forms';
 import * as _ from 'lodash';
 import {PatientAccessBrand} from '../../models/patient-access-brands';
 import {PlatformService} from '../../services/platform.service';
+import {FormRequestHealthSystemComponent} from '../../components/form-request-health-system/form-request-health-system.component';
+import {extractErrorFromResponse} from '../../../lib/utils/error_extract';
 
 export const sourceConnectWindowTimeout = 24*5000 //wait 2 minutes (5 * 24 = 120)
 
@@ -38,7 +40,7 @@ export class MedicalSourcesComponent implements OnInit {
   environment_name = environment.environment_name
 
   uploadedFile: File[] = []
-
+  uploadErrorMsg: string = ""
 
   availableLighthouseBrandList: SourceListItem[] = []
   searchTermUpdate = new BehaviorSubject<string>("");
@@ -89,17 +91,13 @@ export class MedicalSourcesComponent implements OnInit {
   ) {
     this.filterService.filterChanges.subscribe((filterInfo) => {
 
-      console.log("medical-sources - filterChanges", filterInfo)
-
       //this function should only trigger when there's a change to the filter values -- which requires a new query
       this.availableLighthouseBrandList = []
       this.resultLimits.totalItems = 0
       this.resultLimits.scrollComplete = false
 
       //update the form with data from route (don't emit a new patch event), then submit query
-      this.querySources(filterInfo?.filter).subscribe(null, null, () => {
-        console.log("querySources() complete")
-      })
+      this.querySources(filterInfo?.filter).subscribe(null, null, () => {})
     })
   }
 
@@ -133,7 +131,6 @@ export class MedicalSourcesComponent implements OnInit {
         distinctUntilChanged(),
       )
       .subscribe(value => {
-        console.log("search term changed:", value)
         let currentQuery = this.filterService.filterForm.value.query || ""
         if(value != null && currentQuery != value){
           this.filterService.filterForm.patchValue({query: value})
@@ -143,9 +140,7 @@ export class MedicalSourcesComponent implements OnInit {
   }
 
   private querySources(filter?: MedicalSourcesFilter): Observable<LighthouseSourceSearch> {
-    console.log("querySources()", filter)
     if(this.loading){
-      console.log("already loading, ignoring querySources()")
       return of(null)
     }
     //TODO: pass filter to function.
@@ -153,7 +148,6 @@ export class MedicalSourcesComponent implements OnInit {
 
     if(!filter){
       filter = this.filterService.toMedicalSourcesFilter(this.filterForm.value)
-      console.log("querySources() - no filter provided, using current form value", filter)
     }
 
 
@@ -161,7 +155,6 @@ export class MedicalSourcesComponent implements OnInit {
     this.loading = true
     var searchObservable = this.lighthouseApi.searchLighthouseSources(filter);
     searchObservable.subscribe(wrapper => {
-      console.log("search sources", wrapper);
       // this.searchResults = wrapper.hits.hits;
       this.resultLimits.totalItems = wrapper.hits.total.value;
 
@@ -174,11 +167,9 @@ export class MedicalSourcesComponent implements OnInit {
 
       //check if scroll is complete.
       if(!wrapper?.hits || !wrapper?.hits?.hits || wrapper?.hits?.hits?.length == 0 || wrapper?.hits?.total?.value == wrapper?.hits?.hits?.length){
-        console.log("SCROLL_COMPLETE!@@@@@@@@")
         this.resultLimits.scrollComplete = true;
       } else {
         //change the current Page (but don't cause a new query)
-        console.log("SETTING NEXT SORT KEY:", wrapper.hits.hits[wrapper.hits.hits.length - 1].sort.join(','))
         this.filterService.filterForm.patchValue({searchAfter: wrapper.hits.hits[wrapper.hits.hits.length - 1].sort.join(",")}, {emitEvent: false})
       }
 
@@ -229,7 +220,6 @@ export class MedicalSourcesComponent implements OnInit {
       },
       () => {
         this.loading = false
-        console.log("sources finished")
       }
     );
     return searchObservable;
@@ -297,10 +287,8 @@ export class MedicalSourcesComponent implements OnInit {
         sourceMetadata.brand_id = brandId
         sourceMetadata.portal_id = portalId
 
-        console.log(sourceMetadata);
         let authorizationUrl = await this.lighthouseApi.generateSourceAuthorizeUrl(sourceMetadata)
 
-        console.log('authorize url:', authorizationUrl.toString());
         // redirect to lighthouse with uri's (or open a new window in desktop mode)
         this.lighthouseApi.redirectWithOriginAndDestination(authorizationUrl.toString(), sourceMetadata).subscribe((desktopRedirectData) => {
           if(!desktopRedirectData){
@@ -326,7 +314,7 @@ export class MedicalSourcesComponent implements OnInit {
    * @param event
    */
   public async uploadSourceBundleHandler(event) {
-
+    this.uploadErrorMsg = ""
     let processingFile = event.addedFiles[0] as File
     this.uploadedFile = [processingFile]
 
@@ -334,11 +322,17 @@ export class MedicalSourcesComponent implements OnInit {
 
       let shouldConvert = await this.showCcdaWarningModal()
       if(shouldConvert){
-        let convertedFile = await this.platformApi.convertCcdaToFhir(processingFile).toPromise()
-        console.log("converted file: ", convertedFile.name)
-        processingFile = convertedFile
+        try {
+          let convertedFile = await this.platformApi.convertCcdaToFhir(processingFile).toPromise()
+          processingFile = convertedFile
+        } catch(err){
+          console.error(err)
+          this.uploadErrorMsg = "Error converting file: " + (extractErrorFromResponse(err) || "Unknown Error")
+          this.uploadedFile = []
+          return
+        }
+
       } else {
-        console.log("removing file from list")
         this.uploadedFile = []
         return
       }
@@ -348,9 +342,11 @@ export class MedicalSourcesComponent implements OnInit {
     //TODO: handle manual bundles.
     this.fastenApi.createManualSource(processingFile).subscribe(
       (respData) => {
-        console.log("source manual source create response:", respData)
       },
-      (err) => {console.log(err)},
+      (err) => {
+        console.log(err)
+        this.uploadErrorMsg = "Error uploading file: " + (extractErrorFromResponse(err)|| "Unknown Error")
+      },
       () => {
         this.uploadedFile = []
       }
@@ -359,7 +355,6 @@ export class MedicalSourcesComponent implements OnInit {
 
   showCcdaWarningModal(): Promise<boolean> {
 
-    console.log("SHOWING CCDA Warning MODAL")
 
     return this.modalService.open(this.ccdaWarningModalRef).result.then<boolean>(
       (result) => {
@@ -372,6 +367,17 @@ export class MedicalSourcesComponent implements OnInit {
     })
   }
 
+  showRequestHealthSystemModal(): Promise<boolean> {
+    return this.modalService.open(FormRequestHealthSystemComponent).result.then<boolean>(
+      (result) => {
+        //convert button clicked, .close()
+        return true
+      }
+    ).catch((reason) => {
+      // x or cancel button clicked, .dismiss()
+      return false
+    })
+  }
 
 
 }
